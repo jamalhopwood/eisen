@@ -1,0 +1,135 @@
+#!/usr/bin/python3
+
+import sys
+from os.path import expanduser
+
+def printDashes():
+    print("-"*(max + 5) + "-"*(max + 5))
+
+def printRow(arr1, arr2):
+    x = len(arr1) if len(arr1) > len(arr2) else len(arr2)
+    for i in range(x): 
+        if i == 0:
+            sys.stdout.write("||" + " "*(int((max-len(arr1[i]))/2) + 1) + str(arr1[i]) + " "*(int((max-len(arr1[i]))/2) + 1))
+
+        elif i < len(arr1):
+            sys.stdout.write("|| " + str(arr1[i]))
+            sys.stdout.write(" "*(max-len(arr1[i])) + " || ")
+        else:
+            sys.stdout.write("||" + " "*(max + 1) + " || ")
+        
+        if i == 0:
+            print("||" + " "*(int((max-len(arr2[i]))/2) + 1) + str(arr2[i]) + " "*(int((max-len(arr2[i]))/2) + 1) + "||")
+
+            print("||" + " "*(int(max) + 2) + "||" + " "*(int(max) + 2) + "||")
+        elif i < len(arr2):
+            sys.stdout.write(str(arr2[i]))
+            print(" "*(max-len(arr2[i])) + " ||")
+        else:
+            print(" "*max + " ||")
+
+def writeToFile(matrix):
+    
+    file = open(expanduser("~") + "/scripts/eisenData/matrix.csv", "w")
+
+    for cell in matrix:
+        line = ",".join(cell)
+        line += "\n"
+        file.write(line)
+
+    file.close()
+
+def printHelp():
+    print("""
+    Usage: eisen [option]
+
+    Options:
+        show               will show the eisenhower matrix
+
+        add (c) (s)        will add the string 's' to the cell 'c'
+
+        rm (c) (s)         will remove the string 't' 
+                           from cell 'c'
+
+        mv (c1) (c2) (s)   will move the string 's' 
+                           from cell 'c1' to cell 'c2'
+        
+        c: 0, 1, 2, 3 || UI, NI, UN, NN
+    """)
+
+
+
+file = open(expanduser("~") + "/scripts/eisenData/matrix.csv")
+lines = file.readlines()
+file.close()
+
+matrix = []
+
+for line in lines:
+    line = line.strip()
+    matrix.append(line.split(","))
+
+
+if len(sys.argv) < 2 or sys.argv[1] == "show":
+    max = len(matrix[0][0])
+    for line in matrix:
+        for word in line:
+            if len(word) > max:
+                max = len(word)
+
+    printDashes()
+    printRow(matrix[0], matrix[1])
+    printDashes()
+    printRow(matrix[2], matrix[3])
+    printDashes()
+
+elif sys.argv[1] == "--help":
+    printHelp()
+
+elif sys.argv[1] == "add" and len(sys.argv) == 4:
+    entry = sys.argv[3]
+
+    try:
+        matrix[int(sys.argv[2])].append(entry)
+    except ValueError:
+        for cell in matrix:
+            if cell[0] == sys.argv[2]:
+                cell.append(entry)
+
+    writeToFile(matrix)
+
+elif sys.argv[1] == "rm" and len(sys.argv) == 4:
+    entry = sys.argv[3]
+    cell = sys.argv[2]
+
+    try:
+        matrix[int(cell)].remove(entry)
+    except ValueError:
+        for arr in matrix:
+            if arr[0] == cell:
+                arr.remove(entry)
+
+    writeToFile(matrix)
+
+elif sys.argv[1] == "mv" and len(sys.argv) == 5:
+    entry = sys.argv[4]
+    fromm = sys.argv[2]
+    too = sys.argv[3]
+
+    try:
+        matrix[int(fromm)].remove(entry)
+        matrix[int(too)].append(entry)
+
+    except ValueError:
+        for arr in matrix:
+            if arr[0] == fromm:
+                arr.remove(entry)
+
+        for arr in matrix:
+            if arr[0] == too:
+                arr.append(entry)
+
+    writeToFile(matrix)
+
+else:
+    printHelp()
